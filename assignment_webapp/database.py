@@ -523,10 +523,10 @@ def get_alltvshows():
         # Fill in the SQL below with a query to get all tv shows and episode counts #
         #############################################################################
         sql = """
-        SELECT ts.tvshow_id, ts.tvshow_title, count(te) as count
-        FROM mediaserver.tvshow ts NATURAL JOIN mediaserver.tvepisode te
-        GROUP BY ts.tvshow_id, ts.tvshow_title
-        ORDER BY ts.tvshow_id
+        SELECT tvshow_id, tvshow_title, COUNT(media_id)
+        FROM mediaserver.TVShow JOIN mediaserver.TVEpisode USING (tvshow_id)
+        GROUP BY tvshow_id, tvshow_title
+        ORDER BY tvshow_id, tvshow_title
         """
 
         r = dictfetchall(cur,sql)

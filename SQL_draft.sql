@@ -83,7 +83,7 @@ SELECT tvshow_id, tvshow_title, COUNT(media_id)
 FROM mediaserver.TVShow JOIN mediaserver.TVEpisode USING (tvshow_id)
 GROUP BY tvshow_id, tvshow_title;
 
--- Q4: Retrieve details for a single TV show and its episodes --
+-- Q4: Retrieve details for a single TV show and infots episodes --
 
 -- Get TVSHow name
 SELECT tvshow_title
@@ -100,8 +100,8 @@ WHERE tvshow_id = '%s' AND md_type_name IN ('artwork', 'description', 'film genr
 -- Get data about each episode
 SELECT media_id, tvshow_episode_title, season, episode, air_date
 FROM mediaserver.TVShow JOIN mediaserver.TVEpisode USING (tvshow_id)
-ORDER BY season, episode
-WHERE tvshow_id = '%s';
+WHERE tvshow_id = '%s'
+ORDER BY season, episode;
 
 -- Q5: Retrieve details for a single album --
 
