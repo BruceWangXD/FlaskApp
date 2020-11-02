@@ -667,15 +667,32 @@ def search_movies():
     # TODO  #  
     #########
 
+
     #############################################################################
     # Fill in the Function below with to do all data handling for searching for #
     # a movie                                                                   #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Movie Search' # Add the title
+
+        # Get a list of matching tv shows from the database
+    movies = None
+ 
 
     if request.method == 'POST':
         # Set up some variables to manage the post returns
+
+        movies = database.find_matchingmovies(request.form['searchterm'])
+
+        # Data integrity checks
+        if movies == None or movies == []:
+            movies = []
+            page['bar'] = False
+            flash("No matching movies found, please try again")
+        else:
+            page['bar'] = True
+            flash('Found '+str(len(movies))+' results!')
+            session['logged_in'] = True
 
         # Once retrieved, do some data integrity checks on the data
 
@@ -685,13 +702,15 @@ def search_movies():
         return render_template('searchitems/search_movies.html',
                     session=session,
                     page=page,
-                    user=user_details)
-    else:
-        # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
-        return render_template('searchitems/search_movies.html',
-                           session=session,
-                           page=page,
-                           user=user_details)
+                    user=user_details,
+                    movies = movies)
+    # else:
+    #     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
+    #     return render_template('searchitems/search_movies.html',
+    #                        session=session,
+    #                        page=page,
+    #                        user=user_details,
+    #                        movies = movies)
 
 
 #####################################################
