@@ -868,17 +868,25 @@ def add_song():
             newdict['artist'] = request.form['artist']
             print("We have a value: ",newdict['artist'])    
         
-        print('newdict is:')
-        print(newdict)
+        print('newdict is:', newdict)
+        print("(routes)max song id is:", songs)
 
-        print("(routes)max song id is:")
-        print(songs)
+        if database.song_exist(newdict['song_title'],newdict['artist'],newdict['length']):
+            print("The song already exist in database, Adding failed!")
+            flash("The song already exist in database, Adding failed! Redirecting to the song")
+            return single_song(database.song_exist(newdict['song_title'],newdict['artist'],newdict['length'])[0]['song_id'])
+
 
         #forward to the database to manage insert
         if database.artist_exist(newdict['artist']):
             songs = database.add_song_to_db(newdict['storage_location'],newdict['description'],newdict['song_title'],newdict['length'],newdict['song_genre'],newdict['artist'])
         else: 
+            flash("No Artist found, please try again")
             print("Artist not exist!")
+            return render_template('createitems/createsong.html',
+                           session=session,
+                           page=page,
+                           user=user_details)
 
         max_song_id = database.get_last_song()[0]['song_id']
         print("(routes)max song id is:")

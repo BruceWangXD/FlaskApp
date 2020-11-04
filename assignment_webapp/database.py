@@ -1372,10 +1372,46 @@ def get_last_song():
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Unexpected error finding last song:", sys.exc_info()[0])
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
         raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
     return None
+
+def song_exist(name,artist,Length):
+    """
+    return song_id if song exist
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        print(name,artist,Length)
+        sql = """
+        SELECT s.song_id 
+        FROM mediaserver.song s 
+            JOIN mediaserver.Song_Artists sa ON (s.song_id = sa.song_id)
+            JOIN mediaserver.Artist a ON (sa.performing_artist_id = a.artist_id)
+        WHERE s.song_title = %s
+            AND a.artist_id = %s
+            AND s.length = %s"""
+
+        r = dictfetchone(cur,sql,(name,artist,Length))
+        print("Song exist is:",r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Error when testing song existance:", sys.exc_info()[0])
+        cur.close()                     # Close the cursor
+        conn.close()  
+        return False
+                      # Close the connection to the db
+
+
 
 def artist_exist(id):
     """
@@ -1391,7 +1427,7 @@ def artist_exist(id):
         sql = """
         select * FROM mediaserver.Artist WHERE artist_id = %s"""
 
-        r = dictfetchone(cur,sql,(id,))
+        r = dictfetchall(cur,sql,(id,))
         print("artist exist is:")
         print(r)
         cur.close()                     # Close the cursor
@@ -1400,10 +1436,9 @@ def artist_exist(id):
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Error when testing artist existance:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
-    return False
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return False
 
 # =================================================================
 # =================================================================
