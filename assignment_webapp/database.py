@@ -1389,29 +1389,34 @@ def song_exist(name,artist,Length):
     try:
         # Try executing the SQL and get from the database
         print(name,artist,Length)
-        sql = """
-        SELECT s.song_id 
+
+        sql1 = """
+        CREATE OR REPLACE VIEW view1 AS
+        SELECT s.song_id, s.song_title, s.length, string_agg(a.artist_id::text,',' ORDER BY artist_id) as artists_id
         FROM mediaserver.song s 
             JOIN mediaserver.Song_Artists sa ON (s.song_id = sa.song_id)
             JOIN mediaserver.Artist a ON (sa.performing_artist_id = a.artist_id)
-        WHERE s.song_title = %s
-            AND a.artist_id = %s
-            AND s.length = %s"""
+        GROUP BY s.song_id, s.song_title, s.length"""
 
-        r = dictfetchone(cur,sql,(name,artist,Length))
-        print("Song exist is:",r)
+        sql2 = """
+        SELECT *
+        FROM view1
+        WHERE song_title = %s
+            AND artists_id = %s
+            AND length = %s"""
+
+        r1 = cur.execute(sql1)
+        r2 = dictfetchall(cur,sql2,(name,artist,Length))
         cur.close()                     # Close the cursor
         conn.close()                    # Close the connection to the db
-        return r
+        return r2
     except:
         # If there were any errors, return a NULL row printing an error to the debug
-        print("Error when testing song existance:", sys.exc_info()[0])
+        print("Error when testing song existance:", sys.exc_info())
         cur.close()                     # Close the cursor
         conn.close()  
         return False
                       # Close the connection to the db
-
-
 
 def artist_exist(id):
     """
@@ -1436,6 +1441,35 @@ def artist_exist(id):
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Error when testing artist existance:", sys.exc_info()[0])
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return False
+
+def add_song_artist(song_id,artist_id):
+    """
+    add artist to existing song
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        sql = """
+        INSERT INTO mediaserver.Song_Artists VALUES (%s,%s)"""
+
+        cur.execute(sql,(song_id,artist_id))
+        conn.commit()                   # Commit the transaction
+        r = cur.fetchone()
+        print("(database)the added song-artist is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Error add artist to existing song:", sys.exc_info())
         cur.close()                     # Close the cursor
         conn.close()                    # Close the connection to the db
         return False
