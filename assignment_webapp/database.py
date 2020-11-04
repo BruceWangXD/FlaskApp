@@ -1191,11 +1191,19 @@ def find_matchingmovies(searchterm):
         # TODO  #  
         #########
 
+
         #############################################################################
         # Fill in the SQL below with a query to get all information about movies    #
         # that match a given search term                                            #
         #############################################################################
         sql = """
+
+        SELECT m.movie_id, m.movie_title, m.release_year, count(mimd.md_id) as count
+        FROM mediaServer.Movie m LEFT JOIN mediaServer.mediaItemMetaData mimd ON (m.movie_id = mimd.media_id)
+        WHERE lower(m.movie_title) ~ lower(%s)
+        GROUP BY m.movie_id, m.movie_title, m.release_year
+        ORDER BY m.movie_id
+
         """
 
         r = dictfetchall(cur,sql,(searchterm,))
