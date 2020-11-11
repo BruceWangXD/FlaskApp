@@ -153,10 +153,9 @@ def check_login(username, password):
         # Fill in the SQL below in a manner similar to Wk 08 Lab to log the user in #
         #############################################################################
 
-        sql = """
-        
-        
-        """
+        sql = """SELECT *
+                 FROM mediaserver.UserAccount
+                 WHERE username = %s AND password = %s"""
         print(username)
         print(password)
 
@@ -232,10 +231,14 @@ def user_playlists(username):
         ###############################################################################
         # Fill in the SQL below and make sure you get all the playlists for this user #
         ###############################################################################
-        sql = """
-        
+        sql = """        
+        SELECT collection_id, collection_name, COUNT(media_id)
+        FROM mediaserver.UserAccount JOIN mediaserver.MediaCollection USING (username)           	 
+                                     JOIN mediaserver.MediaCollectionContents USING (collection_id)
+        WHERE username = %s
+        GROUP BY collection_id, collection_name
+        ORDER BY collection_id
         """
-
 
         print("username is: "+username)
         r = dictfetchall(cur,sql,(username,))
@@ -275,6 +278,10 @@ def user_podcast_subscriptions(username):
         #################################################################################
 
         sql = """
+        SELECT podcast_id, podcast_title, podcast_uri, podcast_last_updated
+        FROM mediaserver.Subscribed_Podcasts JOIN mediaserver.Podcast USING (podcast_id)
+        WHERE username = %s
+        ORDER BY podcast_id
         """
 
 
@@ -314,7 +321,10 @@ def user_in_progress_items(username):
         ###################################################################################
 
         sql = """
-
+        SELECT media_id, play_count as playcount, progress, lastviewed, storage_location
+        FROM mediaserver.UserMediaConsumption JOIN mediaserver.MediaItem USING (media_id)
+        WHERE username = %s AND progress != 0 AND progress != 100
+        ORDER BY lastviewed DESC, play_count DESC, media_id
         """
 
         r = dictfetchall(cur,sql,(username,))
@@ -513,6 +523,10 @@ def get_alltvshows():
         # Fill in the SQL below with a query to get all tv shows and episode counts #
         #############################################################################
         sql = """
+        SELECT tvshow_id, tvshow_title, COUNT(media_id)
+        FROM mediaserver.TVShow JOIN mediaserver.TVEpisode USING (tvshow_id)
+        GROUP BY tvshow_id, tvshow_title
+        ORDER BY tvshow_id, tvshow_title
         """
 
         r = dictfetchall(cur,sql)
@@ -624,6 +638,11 @@ def get_song(song_id):
         # and the artists that performed it                                         #
         #############################################################################
         sql = """
+        SELECT song_title, length, string_agg(artist_name, ', ' ORDER BY artist_id) AS artists
+        FROM mediaserver.Song s JOIN mediaserver.Song_Artists sa USING (song_id)
+                                JOIN mediaserver.Artist a ON (sa.performing_artist_id = a.artist_id)
+        WHERE song_id = %s
+		GROUP BY song_id, song_title, length
         """
 
         r = dictfetchall(cur,sql,(song_id,))
@@ -661,8 +680,15 @@ def get_song_metadata(song_id):
         #############################################################################
         # Fill in the SQL below with a query to get all metadata about a song       #
         #############################################################################
-
+        
         sql = """
+        SELECT song_id, md_type_name, string_agg(md_value, ', ' ORDER BY md_id) AS md_value 
+        FROM mediaserver.Song JOIN mediaserver.AudioMedia ON (song_id = media_id)
+        JOIN mediaserver.MediaItemMetaData USING (media_id)
+        LEFT JOIN mediaserver.MetaData USING (md_id)
+        LEFT JOIN mediaserver.MetaDataType USING (md_type_id)
+        WHERE song_id = %s
+        GROUP BY song_id, md_type_name, md_value
         """
 
         r = dictfetchall(cur,sql,(song_id,))
@@ -694,7 +720,7 @@ def get_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
@@ -702,6 +728,11 @@ def get_podcast(podcast_id):
         # including all metadata associated with it                                 #
         #############################################################################
         sql = """
+        SELECT podcast_id, podcast_title, podcast_uri, podcast_last_updated,md_type_name,md_value
+FROM mediaserver.Podcast LEFT JOIN mediaserver.PodcastMetaData USING (podcast_id)
+         	LEFT JOIN mediaserver.MetaData USING (md_id)
+         	LEFT JOIN mediaserver.MetaDataType USING (md_type_id)
+WHERE podcast_id = %s AND md_type_name IN ('artwork', 'description', 'podcast genre', 'copyright holder')
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -733,15 +764,19 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
         # Fill in the SQL below with a query to get all information about all       #
         # podcast episodes in a podcast                                             #
         #############################################################################
-        
+
         sql = """
+        SELECT media_id, podcast_episode_title, podcast_episode_URI, podcast_episode_published_date, podcast_episode_length
+FROM mediaserver.Podcast JOIN mediaserver.PodcastEpisode USING (podcast_id)
+WHERE podcast_id = %s
+ORDER BY media_id
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -757,6 +792,7 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
     return None
+
 
 
 #####################################################
@@ -782,6 +818,13 @@ def get_podcastep(podcastep_id):
         # podcast episodes and it's associated metadata                             #
         #############################################################################
         sql = """
+        SELECT media_id, podcast_episode_title, podcast_episode_URI, podcast_episode_published_date, podcast_episode_length,md_value
+FROM  mediaserver.PodcastEpisode LEFT JOIN mediaserver.PodcastMetaData USING (podcast_id)
+                             	LEFT JOIN mediaserver.MetaData USING (md_id)
+                             	LEFT JOIN mediaserver.MetaDataType USING (md_type_id)
+WHERE media_id = %s AND md_type_name IN ('artwork', 'description');
+        
+        
         """
 
         r = dictfetchall(cur,sql,(podcastep_id,))
@@ -822,6 +865,13 @@ def get_album(album_id):
         # including all relevant metadata                                           #
         #############################################################################
         sql = """
+        SELECT a.album_title, mdt.md_type_name, string_agg(md.md_value, ', ' ORDER BY md.md_id) AS md_value
+        FROM mediaserver.Album a
+            LEFT JOIN mediaserver.AlbumMetaData amd ON (a.album_id = amd.album_id)
+            LEFT JOIN mediaserver.MetaData md ON (amd.md_id = md.md_id)
+            LEFT JOIN mediaserver.MetaDataType mdt ON (md.md_type_id = mdt.md_type_id)
+        WHERE a.album_id = %s
+        GROUP BY a.album_title, mdt.md_type_name
         """
 
         r = dictfetchall(cur,sql,(album_id,))
@@ -862,6 +912,15 @@ def get_album_songs(album_id):
         # songs in an album, including their artists                                #
         #############################################################################
         sql = """
+        SELECT b.song_id, s.song_title, string_agg(art.artist_name, ',' ORDER BY art.artist_id) as artists
+        FROM mediaserver.Album a
+            JOIN mediaserver.Album_Songs b ON (A.album_id = b.album_id)
+            JOIN mediaserver.Song s ON (b.song_id = s.song_id)
+            JOIN mediaserver.Song_Artists sa ON (s.song_id = sa.song_id)
+            JOIN mediaserver.Artist art ON (art.artist_id = sa.performing_artist_id)
+        WHERE a.album_id = %s
+        GROUP BY b.song_id, s.song_title, b.track_num
+        ORDER BY b.track_num
         """
 
         r = dictfetchall(cur,sql,(album_id,))
@@ -902,6 +961,14 @@ def get_album_genres(album_id):
         # genres in an album (based on all the genres of the songs in that album)   #
         #############################################################################
         sql = """
+        SELECT a.album_title, string_agg(DISTINCT md.md_value, ', ') as songgenres
+        FROM mediaserver.Album a
+            JOIN mediaserver.Album_Songs b ON (A.album_id = b.album_id)
+            JOIN mediaserver.Song s ON (b.song_id = s.song_id)
+            LEFT JOIN mediaserver.MediaItemMetaData mimd ON (s.song_id = mimd.media_id)
+            LEFT JOIN mediaserver.MetaData md ON (mimd.md_id = md.md_id)
+        WHERE a.album_id = %s
+        GROUP BY a.album_id, a.album_title
         """
 
         r = dictfetchall(cur,sql,(album_id,))
@@ -942,6 +1009,13 @@ def get_tvshow(tvshow_id):
         # including all relevant metadata       #
         #############################################################################
         sql = """
+        SELECT ts.tvshow_title, mdt.md_type_name, string_agg(md.md_value::text, ', ' ORDER BY md.md_id) AS md_value
+        FROM mediaserver.TVShow ts	
+            LEFT JOIN mediaserver.TVShowMetaData tmd ON (ts.tvshow_id = tmd.tvshow_id)
+            LEFT JOIN mediaserver.MetaData md ON (tmd.md_id = md.md_id)
+            LEFT JOIN mediaserver.MetaDataType mdt ON (md.md_type_id = mdt.md_type_id)
+        WHERE ts.tvshow_id = %s
+        GROUP BY ts.tvshow_id, ts.tvshow_title, mdt.md_type_name
         """
 
         r = dictfetchall(cur,sql,(tvshow_id,))
@@ -982,6 +1056,10 @@ def get_all_tvshoweps_for_tvshow(tvshow_id):
         # tv episodes in a tv show                                                  #
         #############################################################################
         sql = """
+        SELECT te.media_id, te.tvshow_episode_title, te.season, te.episode, te.air_date
+        FROM mediaserver.TVShow ts JOIN mediaserver.TVEpisode te ON (ts.tvshow_id = te.tvshow_id)
+        WHERE ts.tvshow_id = %s
+
         """
 
         r = dictfetchall(cur,sql,(tvshow_id,))
@@ -1130,11 +1208,19 @@ def find_matchingmovies(searchterm):
         # TODO  #  
         #########
 
+
         #############################################################################
         # Fill in the SQL below with a query to get all information about movies    #
         # that match a given search term                                            #
         #############################################################################
         sql = """
+
+        SELECT m.movie_id, m.movie_title, m.release_year, count(mimd.md_id) as count
+        FROM mediaServer.Movie m LEFT JOIN mediaServer.mediaItemMetaData mimd ON (m.movie_id = mimd.media_id)
+        WHERE lower(m.movie_title) ~ lower(%s)
+        GROUP BY m.movie_id, m.movie_title, m.release_year
+        ORDER BY m.movie_id
+
         """
 
         r = dictfetchall(cur,sql,(searchterm,))
@@ -1175,7 +1261,7 @@ def add_movie_to_db(title,release_year,description,storage_location,genre):
         cur.execute(sql,(storage_location,description,title,release_year,genre))
         conn.commit()                   # Commit the transaction
         r = cur.fetchone()
-        print("return val is:")
+        print("the added movie id is:")
         print(r)
         cur.close()                     # Close the cursor
         conn.close()                    # Close the connection to the db
@@ -1192,13 +1278,39 @@ def add_movie_to_db(title,release_year,description,storage_location,genre):
 #   Query (9)
 #   Add a new Song
 #####################################################
-def add_song_to_db(song_params):
+def add_song_to_db(storage_location,description,title,length,genre,artistid):
     """
-    Get all the matching Movies in your media server
+    Add a new song to DATABASE
     """
     #########
     # TODO  #  
     #########
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        sql = """
+        SELECT 
+            mediaserver.addSong(
+                %s,%s,%s,%s,%s,%s);
+        """
+
+        cur.execute(sql,(storage_location,description,title,length,genre,artistid))
+        conn.commit()                   # Commit the transaction
+        r = cur.fetchone()
+        print("(database)the added song id is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Unexpected error adding a song:", sys.exc_info()[0])
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()  
 
     #############################################################################
     # Fill in the Function  with a query and management for how to add a new    #
@@ -1250,6 +1362,65 @@ def to_json(fn_name, ret_val):
     return value in JSON.
     """
     return {'function': fn_name, 'res': json.dumps(ret_val)}
+
+#####################################################
+#   Get last Song
+#####################################################
+def get_last_song():
+    """
+    Get all the latest entered movie in your media server
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        sql = """
+        select max(song_id) as song_id from mediaserver.Song"""
+
+        r = dictfetchone(cur,sql)
+        print("Max song id is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Unexpected error finding last song:", sys.exc_info()[0])
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
+    return None
+
+def artist_exist(id):
+    """
+    return ture if artist exist
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        sql = """
+        select * FROM mediaserver.Artist WHERE artist_id = %s"""
+
+        r = dictfetchone(cur,sql,(id,))
+        print("artist exist is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Error when testing artist existance:", sys.exc_info()[0])
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
+    return False
 
 # =================================================================
 # =================================================================
