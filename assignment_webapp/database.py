@@ -728,11 +728,11 @@ def get_podcast(podcast_id):
         # including all metadata associated with it                                 #
         #############################################################################
         sql = """
-        select podcast_id, podcast_title, podcast_uri, podcast_last_updated, md_type_name, md_value
-	            from mediaserver.podcast natural join mediaserver.podcastmetadata 
-			            natural join mediaserver.metadata 
-				            natural join mediaserver.metadatatype
-		        where podcast_id = %s
+        SELECT podcast_id, podcast_title, podcast_uri, podcast_last_updated,md_type_name,md_value
+FROM mediaserver.Podcast LEFT JOIN mediaserver.PodcastMetaData USING (podcast_id)
+         	LEFT JOIN mediaserver.MetaData USING (md_id)
+         	LEFT JOIN mediaserver.MetaDataType USING (md_type_id)
+WHERE podcast_id = %s AND md_type_name IN ('artwork', 'description', 'podcast genre', 'copyright holder')
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -773,10 +773,10 @@ def get_all_podcasteps_for_podcast(podcast_id):
         #############################################################################
 
         sql = """
-        select media_id , podcast_episode_title, podcast_episode_uri, podcast_episode_published_date, podcast_episode_length
-	            from mediaserver.podcastepisode
-	                where podcast_id = %s
-	                    order by media_id
+        SELECT media_id, podcast_episode_title, podcast_episode_URI, podcast_episode_published_date, podcast_episode_length
+FROM mediaserver.Podcast JOIN mediaserver.PodcastEpisode USING (podcast_id)
+WHERE podcast_id = %s
+ORDER BY media_id
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
