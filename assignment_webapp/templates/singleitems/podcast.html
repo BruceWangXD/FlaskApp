@@ -1,16 +1,24 @@
 {% include 'top.html' %}
 <div class="content">
     <div class="container details">
-        
+        <!-- TODO Query 6  
+        Display All Relevant Podcast Infromation including meta data
+        Display All Relevant Podcast Episodes for this Podcast
+        -->
         <h2 class="title"> {{podcast[0].podcast_id}}</h2>
         <h2 class="title"> {{podcast[0].podcast_title}}</h2>
         <h2 class="title"> {{podcast[0].podcast_uri}}</h2>
         <h2 class="title"> {{podcast[0].podcast_last_updated}}</h2>
             <hr/>
-            
-            
+            <h3> Artworks </h3>
+            {% for instance in podcast %}
+                {% if instance.md_type_name == 'artwork' %}
+                    <img src="{{instance.md_value}}" alt="image">
+                   
+                {% endif %}
+            {% endfor %}
             <br/>
-           
+            <h3> Descriptions </h3>
             {% for instance in tvshow %}
                 {% if instance.md_type_name == 'description' %}
                     <div>
@@ -19,7 +27,7 @@
                 {% endif %}
             {% endfor %}
             <br/>
-            
+            <h3> Genres </h3>
             {% for instance in tvshow %}
                 {% if instance.md_type_name == 'copyright holder' %}
                     <div>
@@ -28,9 +36,7 @@
                 {% endif %}
             {% endfor %}
             <div>
-                
-                
-                
+                <!-- Podcast Episodes -->
                 <h3>Episodes for this Podcast</h3>
                 <table class="styled">
                     <thead>
@@ -43,7 +49,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        
+                        <!-- Add a for loop to iterate over the episodes -->
                         {% for instance in all_podcasteps %}
                          <tr class="clickable-tr" data-href="{{ url_for('single_podcastep',media_id=instance.media_id)}}">
                              <td style="text-align: center">{{ instance.media_id }}</td>
@@ -61,3 +67,4 @@
     </div>
 </div>
 {% include 'bottom.html'%}
+
