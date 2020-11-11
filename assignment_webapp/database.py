@@ -720,7 +720,7 @@ def get_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
@@ -728,6 +728,11 @@ def get_podcast(podcast_id):
         # including all metadata associated with it                                 #
         #############################################################################
         sql = """
+        select podcast_id, podcast_title, podcast_uri, podcast_last_updated, md_type_name, md_value
+	            from mediaserver.podcast natural join mediaserver.podcastmetadata 
+			            natural join mediaserver.metadata 
+				            natural join mediaserver.metadatatype
+		        where podcast_id = %s
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -759,15 +764,19 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
         # Fill in the SQL below with a query to get all information about all       #
         # podcast episodes in a podcast                                             #
         #############################################################################
-        
+
         sql = """
+        select media_id , podcast_episode_title, podcast_episode_uri, podcast_episode_published_date, podcast_episode_length
+	            from mediaserver.podcastepisode
+	                where podcast_id = %s
+	                    order by media_id
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -783,6 +792,7 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
     return None
+
 
 
 #####################################################

@@ -413,24 +413,41 @@ def single_podcast(podcast_id):
     Can do this without a login
     """
     #########
-    # TODO  #  
+    # TODO  #
     #########
 
     #############################################################################
     # Fill in the Function below with to do all data handling for a podcast     #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Single podcast' + podcast_id # Add the title
 
     # Set up some variables to manage the returns from the database fucntions
-    
+
+    podcast = None
+    podcast = database.get_podcast(podcast_id)
+
+    all_podcasteps = None
+    all_podcasteps = database.get_all_podcasteps_for_podcast(podcast_id)
+
     # Once retrieved, do some data integrity checks on the data
+
+    if podcast == None:
+        podcast = []
+
+    if all_podcasteps == None:
+        all_podcasteps = []
 
     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
     return render_template('singleitems/podcast.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           podcast=podcast,
+                           all_podcasteps=all_podcasteps
+                           )
+
+
 
 #####################################################
 #   Query 7
@@ -443,17 +460,17 @@ def single_podcastep(media_id):
     Can do this without a login
     """
     #########
-    # TODO  #  
+    # TODO  #
     #########
 
     #############################################################################
     # Fill in the Function below with to do all data handling for a podcast ep  #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Postcast Episode'  + media_id # Add the title
 
     # Set up some variables to manage the returns from the database fucntions
-    
+
     # Once retrieved, do some data integrity checks on the data
 
     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
@@ -461,6 +478,7 @@ def single_podcastep(media_id):
                            session=session,
                            page=page,
                            user=user_details)
+
 
 
 #####################################################
@@ -569,6 +587,7 @@ def single_tvshow(tvshow_id):
         tvshoweps = []
 
     return render_template('singleitems/tvshow.html',
+   
                            session=session,
                            page=page,
                            user=user_details,
