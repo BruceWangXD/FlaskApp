@@ -1,0 +1,24 @@
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+
+        <h2 class="title"> Add Artist </h2>
+
+        <form class="Add" method="POST" action="{{url_for('add_artist')}}">
+            Artist name: <input type="text" name="Artist_name" value="Empty Artist" placeholder="Empty Artist">
+            Description: <input type="text" name="description" value="no description" placeholder="Description">
+            Artwork: <input type="text" name="artwork" value="notfound.png" placeholder="notfound.png">
+            <button class="flat" type="submit">Add</button>
+            <br/>
+            <hr/>
+            <hr/>
+            <hr/>
+            
+
+        </form>
+        <br/>
+        <div>
+
+    </div>
+</div>
+{% include 'bottom.html'%}
