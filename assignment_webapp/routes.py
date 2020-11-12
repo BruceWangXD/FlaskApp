@@ -349,7 +349,7 @@ def single_artist(artist_id):
     # if('logged_in' not in session or not session['logged_in']):
     #     return redirect(url_for('login'))
 
-    page['title'] = 'Artist ID: '+artist_id
+    page['title'] = 'Artist ID: '+ str(artist_id)
 
     # Get a list of all artist by artist_id from the database
     artist = None
@@ -818,7 +818,16 @@ def add_song():
     page['title'] = 'Song Creation'
 
     songs = None
-    print("request form is:")
+
+    Artists = None
+    Artists = database.get_allartists()
+
+    Album = None
+    Album = database.get_allalbums()
+
+    Genres = None
+    Genres = database.get_allgenres()
+
     newdict = {}
     print(request.form)
 
@@ -850,11 +859,6 @@ def add_song():
             newdict['storage_location'] = request.form['storage_location']
             print("We have a value: ",newdict['storage_location'])
 
-        if ('song_genre' not in request.form):
-            newdict['song_genre'] = 'british invasion'
-        else:
-            newdict['song_genre'] = request.form['song_genre']
-            print("We have a value: ",newdict['song_genre'])
 
         if ('artwork' not in request.form):
             newdict['artwork'] = 'https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png'
@@ -862,39 +866,45 @@ def add_song():
             newdict['artwork'] = request.form['artwork']
             print("We have a value: ",newdict['artwork'])
 
-        if ('artist' not in request.form):
-            newdict['artist'] = '19'
-        else:
-            newdict['artist'] = request.form['artist']
-            print("We have a value: ",newdict['artist'])    
-        
-        print('newdict is:', newdict)
-        print("(routes)max song id is:", songs)
+        newdict['artist'] = request.form['artist']
+        newdict['song_genre'] = request.form['song_genre']
+        newdict["Album"] = request.form['Album']
 
-        artists = newdict['artist'].split(",")
-        print("splitted artists is",artists)
-
-        for artist in artists:
-            if not database.artist_exist(artist):
-                flash("No Artist found, please try again")
-                print("Artist not exist!")
+        try:
+            if int(newdict['length'])<0 or int(newdict['length'])>1000000:
+                flash("Invalid length")
                 return render_template('createitems/createsong.html',
+                            Artists = Artists,
+                            Albums = Album,
+                            Genres = Genres,
                             session=session,
                             page=page,
                             user=user_details)
+        except:
+            flash("Invalid length")
+            return render_template('createitems/createsong.html',
+                        Artists = Artists,
+                        Albums = Album,
+                        Genres = Genres,
+                        session=session,
+                        page=page,
+                        user=user_details)
 
         if database.song_exist(newdict['song_title'],newdict['artist'],newdict['length']):
             print("The song already exist in database, Adding failed!")
             flash("The song already exist in database, Adding failed! Redirecting to the song")
             return single_song(database.song_exist(newdict['song_title'],newdict['artist'],newdict['length'])[0]['song_id'])
 
-        #forward to the database to manage insert
-        for i in range(len(artists)):
-            if i == 0:
-                songs = database.add_song_to_db(newdict['storage_location'],newdict['description'],newdict['song_title'],newdict['length'],newdict['song_genre'],artists[i])
-                songsid = songs[0]
-            else:
-                database.add_song_artist(songsid,artists[i])
+
+        if newdict["Album"] == 'None':
+            songs = database.add_song_to_db1(newdict['storage_location'],newdict['description'],newdict['song_title'],newdict['length'],newdict['song_genre'],newdict['artist'])
+        else:
+            print(database.get_album(newdict["Album"])[0]['count'])
+            albumtrack = int(database.get_album(newdict["Album"])[0]['count'])+1
+            songs = database.add_song_to_db2(newdict['storage_location'],newdict['description'],newdict['song_title'],newdict['length'],newdict['song_genre'],newdict["Album"],albumtrack,newdict['artist'])
+        songsid = songs[0]
+        database.add_song_artist(songsid,newdict['artist'])
+        flash("Success! You add a song into the database.")
 
         max_song_id = database.get_last_song()[0]['song_id']
         print("(routes)max song id is:")
@@ -906,6 +916,137 @@ def add_song():
         return single_song(max_song_id)
     else:
         return render_template('createitems/createsong.html',
+                           Artists = Artists,
+                           Albums = Album,
+                           Genres = Genres,
+                           session=session,
+                           page=page,
+                           user=user_details)
+
+#####################################################
+#   Add artist
+#####################################################
+@app.route('/add/artist', methods=['POST','GET'])
+def add_artist():
+    """
+    Add a new artist
+    """
+    # # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    page['title'] = 'Artist Creation'
+
+    Artist = None
+    print("request form is:")
+    newdict = {}
+    print(request.form)
+
+    # Check your incoming parameters
+    if(request.method == 'POST'):
+
+        # verify that the values are available:
+        if ('Artist_name' not in request.form):
+            newdict['Artist_name'] = 'Empty Artist'
+        else:
+            newdict['Artist_name'] = request.form['Artist_name']
+            print("We have a value: ",newdict['Artist_name'])
+
+        if ('description' not in request.form):
+            newdict['description'] = 'Empty description field'
+        else:
+            newdict['description'] = request.form['description']
+            print("We have a value: ",newdict['description'])
+
+        if ('artwork' not in request.form):
+            newdict['artwork'] = 'https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png'
+        else:
+            newdict['artwork'] = request.form['artwork']
+            print("We have a value: ",newdict['artwork'])
+        
+        print('newdict is:')
+        print(newdict)
+
+        if database.artist_nameexist(newdict['Artist_name']):
+            print("The artist already exist in database, Adding failed!")
+            flash("The artist already exist in database, Adding failed!Redirecting to the artist")
+            return single_artist(database.artist_nameexist(newdict['Artist_name'])[0]["artist_id"])
+
+        #forward to the database to manage insert
+
+        Artist = database.add_artist_to_db(newdict['Artist_name'],newdict['description'])
+        flash("Success! You add an artist into the database.")
+
+        max_artist_id = database.get_last_artist()[0]['artist_id']
+
+        # ideally this would redirect to your newly added movie
+        return single_artist(max_artist_id)
+    else:
+        return render_template('createitems/createartist.html',
+                           session=session,
+                           page=page,
+                           user=user_details)
+
+
+#####################################################
+#   Add album
+#####################################################
+@app.route('/add/album', methods=['POST','GET'])
+def add_album():
+    """
+    Add a new album
+    """
+    # # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    page['title'] = 'Album Creation'
+
+    Album = None
+    print("request form is:")
+    newdict = {}
+    print(request.form)
+
+    # Check your incoming parameters
+    if(request.method == 'POST'):
+
+        # verify that the values are available:
+        if ('Album_name' not in request.form):
+            newdict['Album_name'] = 'Empty Album'
+        else:
+            newdict['Album_name'] = request.form['Album_name']
+            print("We have a value: ",newdict['Album_name'])
+
+        if ('description' not in request.form):
+            newdict['description'] = 'Empty description field'
+        else:
+            newdict['description'] = request.form['description']
+            print("We have a value: ",newdict['description'])
+
+        if ('artwork' not in request.form):
+            newdict['artwork'] = 'https://user-images.githubusercontent.com/24848110/33519396-7e56363c-d79d-11e7-969b-09782f5ccbab.png'
+        else:
+            newdict['artwork'] = request.form['artwork']
+            print("We have a value: ",newdict['artwork'])
+
+        
+
+        if database.album_nameexist(newdict['Album_name']):
+            print("The album already exist in database, Adding failed!")
+            flash("The album already exist in database, Adding failed!Redirecting to the artist")
+            return single_artist(database.album_nameexist(newdict['Album_name'])[0]["album_id"])
+
+        #forward to the database to manage insert
+
+        Album = database.add_album_to_db(newdict['Album_name'],newdict['description'])
+        flash("Success! You add an album into the database.")
+
+        max_album_id = database.get_last_album()[0]['album_id']
+
+        # ideally this would redirect to your newly added movie
+        return single_album(max_album_id)
+    else:
+        return render_template('createitems/createalbum.html',
                            session=session,
                            page=page,
                            user=user_details)

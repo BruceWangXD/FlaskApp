@@ -6,7 +6,7 @@
             <h2 class="title"> {{song[0].song_title}} by {{song[0].artists}}</h2>
             <br/>
             Song is {{song[0].length}} seconds long.
-            <hr/>
+            <hr/>``
             <h3> Artworks </h3>
             {% for instance in songmetadata %}
                 {% if instance.md_type_name == 'artwork' %}

@@ -299,12 +299,12 @@ LANGUAGE sql;
 -- Call it using 'Select addsong([paramaters]);'
 -- Example: SELECT mediaserver.addSong('no location','no description','Empty Song','0','pop','33');
 -- TODO :: Part 9, handle the proper insertion of a song
-create or replace function mediaserver.addSong(
+create or replace function mediaserver.addSong1(
 	location text,
 	songdescription text,
 	title varchar(250),
 	songlength int,
-	songgenre text,
+	songgenre int,
     artistid int)
 RETURNS int AS
 $BODY$
@@ -326,16 +326,11 @@ $BODY$
         ,ins4 AS (
         INSERT INTO mediaserver.Song
         SELECT media_id, title, songlength FROM ins1
-        )
-        ,ins5 AS (
-        INSERT INTO mediaserver.metadata (md_type_id,md_value)
-        SELECT md_type_id, songgenre
-        FROM mediaserver.MetaDataType where md_type_name = 'song genre'
-        RETURNING md_id as genre_md_id
+        RETURNING song_id
         )
         ,ins6 AS (
         INSERT INTO mediaserver.MediaItemMetaData
-        SELECT media_id, genre_md_id FROM ins1, ins5
+        SELECT media_id, songgenre FROM ins1
         )
 		,ins7 AS (
         INSERT INTO mediaserver.Song_Artists
@@ -345,6 +340,106 @@ $BODY$
         SELECT media_id, md_id FROM ins1, ins2;
 
         SELECT max(song_id) as song_id FROM mediaserver.Song;
+$BODY$
+LANGUAGE sql;
+
+create or replace function mediaserver.addSong2(
+	location text,
+	songdescription text,
+	title varchar(250),
+	songlength int,
+	songgenre int,
+    albumid int,
+    albumtrack int,
+    artistid int)
+RETURNS int AS
+$BODY$
+    WITH ins1 AS (
+        INSERT INTO mediaserver.mediaItem(storage_location)
+        VALUES (location)
+        RETURNING media_id
+        )
+        , ins2 AS (
+        INSERT INTO mediaserver.metadata (md_type_id,md_value)
+        SELECT md_type_id, songdescription
+        FROM mediaserver.MetaDataType where md_type_name = 'description'
+        RETURNING md_id
+        )
+        , ins3 AS (
+        INSERT INTO mediaserver.AudioMedia
+        SELECT media_id FROM ins1
+        )
+        ,ins4 AS (
+        INSERT INTO mediaserver.Song
+        SELECT media_id, title, songlength FROM ins1
+        RETURNING song_id
+        )
+        ,ins5 AS (
+        INSERT INTO mediaserver.Album_Songs
+        SELECT song_id, albumid ,albumtrack FROM ins4
+        )
+        ,ins6 AS (
+        INSERT INTO mediaserver.MediaItemMetaData
+        SELECT media_id, songgenre FROM ins1
+        )
+		,ins7 AS (
+        INSERT INTO mediaserver.Song_Artists
+        SELECT media_id, artistid FROM ins1
+        )
+        INSERT INTO mediaserver.MediaItemMetaData
+        SELECT media_id, md_id FROM ins1, ins2;
+
+        SELECT max(song_id) as song_id FROM mediaserver.Song;
+$BODY$
+LANGUAGE sql;
+
+create or replace function mediaserver.addartist(
+	name varchar(100),
+    description text)
+RETURNS int AS
+$BODY$
+    WITH ins1 AS (
+        INSERT INTO mediaserver.Artist
+        VALUES (name)
+        RETURNING artist_id
+        )
+        , ins2 AS (
+        INSERT INTO mediaserver.metadata (md_type_id,md_value)
+        SELECT md_type_id, description
+        FROM mediaserver.MetaDataType where md_type_name = 'description'
+        RETURNING md_id
+        )
+        , ins3 AS (
+        INSERT INTO mediaserver.ArtistMetaData
+        SELECT artist_id,md_id FROM ins1,ins2
+        )
+        
+        SELECT max(artist_id) as artist_id FROM mediaserver.Artist;
+$BODY$
+LANGUAGE sql;
+
+create or replace function mediaserver.addalbum(
+	name varchar(250),
+    description text)
+RETURNS int AS
+$BODY$
+    WITH ins1 AS (
+        INSERT INTO mediaserver.Album (album_title)
+        VALUES (name)
+        RETURNING album_id
+        )
+        , ins2 AS (
+        INSERT INTO mediaserver.metadata (md_type_id,md_value)
+        SELECT md_type_id, description
+        FROM mediaserver.MetaDataType where md_type_name = 'description'
+        RETURNING md_id
+        )
+        , ins3 AS (
+        INSERT INTO mediaserver.AlbumMetaData
+        SELECT album_id,md_id FROM ins1,ins2
+        )
+        
+        SELECT max(album_id) as album_id FROM mediaserver.Album;
 $BODY$
 LANGUAGE sql;
 
