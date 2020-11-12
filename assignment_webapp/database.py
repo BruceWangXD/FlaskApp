@@ -1220,6 +1220,125 @@ def find_matchingmovies(searchterm):
     conn.close()                    # Close the connection to the db
     return None
 
+#####################################################
+#   Find all matching songs
+#####################################################
+def find_matchingsongs(searchterm):
+    """
+    Get all the matching songs in your media server
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        sql = """
+        SELECT s.song_id, s.song_title, length, string_agg(a.artist_name, ',') as artists
+        FROM mediaServer.Song s LEFT JOIN (mediaServer.Song_Artists sa JOIN mediaServer.Artist a ON (sa.performing_artist_id = a.artist_id))
+                                USING (song_id) 
+        WHERE lower(s.song_title) ~ lower(%s)
+        GROUP BY s.song_id, s.song_title
+        ORDER BY s.song_id            
+        """
+
+        r = dictfetchall(cur,sql,(searchterm,))
+        print("return val is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Unexpected error getting All Songs:", sys.exc_info()[0])
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
+    return None
+
+#####################################################
+#   Find all matching albums
+#####################################################
+def find_matchingalbums(searchterm):
+    """
+    Get all the matching albums in your media server
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        sql = """
+        select 
+        a.album_id, a.album_title, anew.count as count, anew.artists
+        from 
+        mediaserver.album a, 
+        (select 
+        a1.album_id, count(distinct as1.song_id) as count, array_to_string(array_agg(distinct ar1.artist_name),',') as artists
+        from 
+        mediaserver.album a1 
+        left outer join mediaserver.album_songs as1 on (a1.album_id=as1.album_id) 
+        left outer join mediaserver.song s1 on (as1.song_id=s1.song_id)
+        left outer join mediaserver.Song_Artists sa1 on (s1.song_id=sa1.song_id)
+        left outer join mediaserver.artist ar1 on (sa1.performing_artist_id=ar1.artist_id)
+        group by a1.album_id) anew 
+        where lower(a.album_title) ~ lower(%s)
+        order by a.album_id
+        """
+        r = dictfetchall(cur,sql,(searchterm,))
+        print("return val is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Unexpected error getting All Songs:", sys.exc_info()[0])
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
+    return None
+
+
+#####################################################
+#   Find all matching artist
+#####################################################
+def find_matchingartists(searchterm):
+    """
+    Get all the matching artists in your media server
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        sql = """select 
+            a.artist_id, a.artist_name, count(amd.md_id) as count
+        from 
+            mediaserver.artist a left outer join mediaserver.artistmetadata amd on (a.artist_id=amd.artist_id)
+        where lower(artist_name) ~ lower(%s)
+        group by a.artist_id, a.artist_name
+        order by a.artist_id;
+        """
+
+        r = dictfetchall(cur,sql,(searchterm,))
+        print("return val is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Unexpected error getting All Songs:", sys.exc_info()[0])
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
+    return None
 
 
 #####################################################
