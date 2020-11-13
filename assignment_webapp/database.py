@@ -1272,21 +1272,15 @@ def find_matchingalbums(searchterm):
     try:
         # Try executing the SQL and get from the database
         sql = """
-        select 
-        a.album_id, a.album_title, anew.count as count, anew.artists
-        from 
-        mediaserver.album a, 
-        (select 
-        a1.album_id, count(distinct as1.song_id) as count, array_to_string(array_agg(distinct ar1.artist_name),',') as artists
-        from 
-        mediaserver.album a1 
-        left outer join mediaserver.album_songs as1 on (a1.album_id=as1.album_id) 
-        left outer join mediaserver.song s1 on (as1.song_id=s1.song_id)
-        left outer join mediaserver.Song_Artists sa1 on (s1.song_id=sa1.song_id)
-        left outer join mediaserver.artist ar1 on (sa1.performing_artist_id=ar1.artist_id)
-        group by a1.album_id) anew 
-        where lower(a.album_title) ~ lower(%s)
-        order by a.album_id
+        
+        SELECT album_id, album_title, COUNT(distinct song_id), array_to_string(array_agg(distinct artist_name), ', ') as artists
+        FROM mediaserver.album a LEFT JOIN mediaserver.album_songs als USING (album_id)
+                                 LEFT JOIN mediaserver.song s USING (song_id)
+                                 LEFT JOIN mediaserver.song_artists sa USING (song_id)
+                                 LEFT JOIN mediaserver.artist ar ON (sa.performing_artist_id = ar.artist_id)
+        WHERE lower(album_title) ~ lower(%s)
+        GROUP BY album_id, album_title
+        ORDER BY album_id                          
         """
         r = dictfetchall(cur,sql,(searchterm,))
         print("return val is:")
