@@ -3,9 +3,6 @@
     <div class="container details">
         <h2 class="title"> All Albums</h2>
         <hr/>
-        {% if session.logged_in %}
-        <a class="pure-button" href="{{ url_for('add_album')}}">Add Album</a>
-        {% endif %}
         <div>
         <!-- All Albums -->
             <table class="styled">

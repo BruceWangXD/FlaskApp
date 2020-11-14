@@ -31,34 +31,14 @@
 
             Song title: <input type="text" name="song_title" value="Empty Song" placeholder="Song name">
             Length: <input type="text" name="length" value="0" placeholder="2000">
+            <br/>
             Storage location: <input type="text" name="storage_location" value="no location" placeholder="Storage location">
-            <br/> 
             Description: <input type="text" name="description" value="no description" placeholder="Description">
+            <br/>
+            Song Genre: <input type="text" name="song_genre" value="british invasion" placeholder="british invasion">
+            Artist id: <input type="text" name="artist" value="19" placeholder="No artist">
             Artwork: <input type="text" name="artwork" value="notfound.png" placeholder="notfound.png">
-            <br/> 
-
-            <label for="artist">Choose an Artist:</label>
-            <select id="artist" name="artist">
-            {% for instance in Artists %}
-                <option value={{instance.artist_id}} selected>{{instance.artist_name}} </option>
-            {% endfor %}
-            </select>
-            
-            <label for="song_genre">Choose a Genre:</label>
-            <select id="song_genre" name="song_genre">
-            {% for instance in Genres %}
-                <option value={{instance.md_id}} selected>{{instance.md_value}} </option>
-            {% endfor %}
-            </select>
-           
-            <label for="Album">Choose an Album:</label>
-            <select id="Album" name="Album">
-            {% for instance in Albums %}
-                <option value={{instance.album_id}} selected>{{instance.album_title}} </option>
-            {% endfor %}
-            <option value='None' selected>No Album</option>
-            </select>
-            
+            <br/>
             <button class="flat" type="submit">Add</button>
             <br/>
             <hr/>
