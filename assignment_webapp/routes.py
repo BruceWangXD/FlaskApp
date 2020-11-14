@@ -1146,8 +1146,8 @@ def add_album():
 
         if database.album_nameexist(newdict['Album_name']):
             print("The album already exist in database, Adding failed!")
-            flash("The album already exist in database, Adding failed!Redirecting to the artist")
-            return single_artist(database.album_nameexist(newdict['Album_name'])[0]["album_id"])
+            flash("The album already exist in database, Adding failed!Redirecting to the album")
+            return single_album(database.album_nameexist(newdict['Album_name'])[0]["album_id"])
 
         #forward to the database to manage insert
 
@@ -1160,6 +1160,13 @@ def add_album():
         return single_album(max_album_id)
     else:
         return render_template('createitems/createalbum.html',
+                           session=session,
+                           page=page,
+                           user=user_details)
+
+@app.route('/add/media', methods=['POST','GET'])
+def add_media():
+    return render_template('createitems/createmedia.html',
                            session=session,
                            page=page,
                            user=user_details)
