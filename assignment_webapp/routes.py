@@ -632,7 +632,7 @@ def search_tvshows():
     tvshows = None
     if(request.method == 'POST'):
 
-        tvshows = database.find_matchingtvshows(request.form['searchterm'])
+        tvshows = database.find_matchingsongs(request.form['searchterm'])
 
     # Data integrity checks
     if tvshows == None or tvshows == []:
@@ -712,6 +712,119 @@ def search_movies():
     #                        user=user_details,
     #                        movies = movies)
 
+
+#####################################################
+#   Search Song
+#####################################################
+@app.route('/search/song', methods=['POST','GET'])
+def search_songs():
+    """
+    Search all the songs in your media server
+    """
+
+    # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    page['title'] = 'Song Search'
+
+    # Get a list of matching songs from the database
+    songs = None
+    if(request.method == 'POST'):
+
+        songs = database.find_matchingsongs(request.form['searchterm'])
+
+    # Data integrity checks
+    if songs == None or songs == []:
+        songs = []
+        page['bar'] = False
+        flash("No matching songs found, please try again")
+    else:
+        page['bar'] = True
+        flash('Found '+str(len(songs))+' results!')
+        session['logged_in'] = True
+
+    return render_template('searchitems/search_songs.html',
+                           session=session,
+                           page=page,
+                           user=user_details,
+                           songs=songs)
+
+
+#####################################################
+#   Search Album
+#####################################################
+@app.route('/search/album', methods=['POST','GET'])
+def search_albums():
+    """
+    Search all the songs in your media server
+    """
+
+    # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    page['title'] = 'Album Search'
+
+    # Get a list of matching songs from the database
+    albums = None
+    if(request.method == 'POST'):
+
+        albums = database.find_matchingalbums(request.form['searchterm'])
+
+    # Data integrity checks
+    if albums == None or albums == []:
+        albums = []
+        page['bar'] = False
+        flash("No matching albums found, please try again")
+    else:
+        page['bar'] = True
+        flash('Found '+str(len(albums))+' results!')
+        session['logged_in'] = True
+
+    return render_template('searchitems/search_albums.html',
+                           session=session,
+                           page=page,
+                           user=user_details,
+                           albums=albums)
+
+
+#####################################################
+#   Search Album
+#####################################################
+@app.route('/search/artist', methods=['POST','GET'])
+def search_artists():
+    """
+    Search all the songs in your media server
+    """
+
+    # Check if the user is logged in, if not: back to login.
+    if('logged_in' not in session or not session['logged_in']):
+        return redirect(url_for('login'))
+
+    page['title'] = 'Artist Search'
+
+    # Get a list of matching songs from the database
+    artists = None
+    if(request.method == 'POST'):
+
+        artists = database.find_matchingartists(request.form['searchterm'])
+
+    # Data integrity checks
+    if artists == None or artists == []:
+        artists = []
+        page['bar'] = False
+        flash("No matching artists found, please try again")
+    else:
+        page['bar'] = True
+        flash('Found '+str(len(artists))+' results!')
+        session['logged_in'] = True
+
+    return render_template('searchitems/search_artists.html',
+                           session=session,
+                           page=page,
+                           user=user_details,
+                           artists=artists)
 
 #####################################################
 #   Add Movie
