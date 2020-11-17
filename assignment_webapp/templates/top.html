@@ -39,8 +39,9 @@
                         <li><a href="{{ url_for('list_tvshows') }}">TV Shows</a></li>
                         <li><a href="{{ url_for('list_movies') }}">Movies</a></li>
                         {% if session.logged_in %}
-                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                       
                         <li><a href="{{ url_for('changepassword') }}">Change Password </a></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
                         <br>
                         
                         
