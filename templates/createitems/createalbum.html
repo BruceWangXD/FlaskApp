@@ -1,0 +1,27 @@
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+
+        <h2 class="title"> Add Album </h2>
+
+        <form class="Add" method="POST" action="{{url_for('add_album')}}">
+
+            Album name: <input type="text" name="Album_name" value="Empty Album" placeholder="Album name">
+            Description: <input type="text" name="description" value="no description" placeholder="Description">
+            Artwork: <input type="text" name="artwork" value="notfound.png" placeholder="notfound.png">
+            <br/> 
+            
+            <button class="flat" type="submit">Add</button>
+            <br/>
+            <hr/>
+            <hr/>
+            <hr/>
+            
+
+        </form>
+        <br/>
+        <div>
+
+    </div>
+</div>
+{% include 'bottom.html'%}
