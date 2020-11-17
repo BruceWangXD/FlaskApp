@@ -39,8 +39,19 @@
                         <li><a href="{{ url_for('list_tvshows') }}">TV Shows</a></li>
                         <li><a href="{{ url_for('list_movies') }}">Movies</a></li>
                         {% if session.logged_in %}
-                            <li><a href="{{ url_for('logout') }}">Logout</a></li>
-                            <li></li>
+                        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                        <li><a href="{{ url_for('changepassword') }}">Change Password </a></li>
+                        <br>
+                        
+                        
+                        
+                        
+
+
+                        
+                        
+                        <li><a href="{{ url_for('changeemail') }}">email:  {{contact[0].get('contact_type_value')}} </a></li>
+                        <li><a href="{{ url_for('changephonenumber') }}">phone number:  {{contact[1].get('contact_type_value')}}  </a></li>
                         {% endif %}
                     </ul>
                 </div>
