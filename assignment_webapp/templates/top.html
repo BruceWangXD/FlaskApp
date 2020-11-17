@@ -2,11 +2,13 @@
 <html>
     <head>
         <title>RandomCompany's Media Server</title>
+        
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/pure.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/grid.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
         <script src="{{ url_for('static', filename='scripts/jquery.js') }}"></script>
         <script type="application/javascript">
+
 
             function getsearchtarget()
             {
@@ -31,7 +33,7 @@
                         <a href="/"><span class="inner"></span></a>
                     </div>
                     <ul class="page-nav">
-                        <li><a href="{{ url_for('add_media') }}">Add Media</a></li>
+                        
                         <li><a href="{{ url_for('list_artists') }}">Artists</a></li>
                         <li><a href="{{ url_for('list_songs') }}">Songs</a></li>
                         <li><a href="{{ url_for('list_podcasts') }}">Podcasts</a></li>
@@ -40,7 +42,24 @@
                         <li><a href="{{ url_for('list_movies') }}">Movies</a></li>
                         {% if session.logged_in %}
                             <li><a href="{{ url_for('logout') }}">Logout</a></li>
-                            <li></li>
+                            <li><a href="{{ url_for('changepassword') }}">Change Password </a></li>
+                            <br>
+                            
+                            
+                            
+                            
+
+
+                            
+                            
+                            <li><a href="{{ url_for('changeemail') }}">email:  {{contact[0].get('contact_type_value')}} </a></li>
+                            <li><a href="{{ url_for('changephonenumber') }}">phone number:  {{contact[1].get('contact_type_value')}}  </a></li>
+                            
+                            
+                           
+                            
+                            
+
                         {% endif %}
                     </ul>
                 </div>
@@ -53,10 +72,11 @@
                                 <option value="{{ url_for('search_tvshows' ) }}" selected>TV Shows</option>
                                 <!-- TODO Query 10, uncomment the next line by removing the brace+hashtag to add this menu option -->
                                 {<option value="{{ url_for('search_movies' ) }} " selected>Movies</option>}
-                                {<option value="{{ url_for('search_songs' ) }}">Songs</option>}
-                                {<option value="{{ url_for('search_artists' ) }}">Artists</option>}
-                                {<option value="{{ url_for('search_albums' ) }}">Albums</option>}
+                                {# <option value="{{ url_for('search_songs' ) }}">Songs</option> #}
+                                {# <option value="{{ url_for('search_artists' ) }}">Artists</option> #}
+                                {# <option value="{{ url_for('search_albums' ) }}">Albums</option> #}
                                 {# <option value="{{ url_for('search_podcasts' ) }}">Podcasts</option> #}
+                                
                             </select>
                             <button type="submit">Search</button>
                         </form>

@@ -8,6 +8,7 @@ import configparser
 import json
 import sys
 from modules import pg8000
+from werkzeug.security import generate_password_hash, check_password_hash
 
 ################################################################################
 #   Welcome to the database file, where all the query magic happens.
@@ -132,6 +133,210 @@ def dictfetchone(cursor,sqltext,params=None):
 #   Query (1)
 #   Login
 #####################################################
+def set_password(password):
+    pw_hash = generate_password_hash(password)
+    return pw_hash
+
+def check_password(pw_hash,password):
+    return check_password_hash(pw_hash, password)
+
+
+def change_password(password,username):
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        #########
+        # TODO  #  
+        #########
+
+        #############################################################################
+        # Fill in the SQL below in a manner similar to Wk 08 Lab to log the user in #
+        #############################################################################
+
+        
+      
+        
+        sql = """update mediaserver.UserAccount
+set password=%s
+where username=%s
+"""
+        
+
+
+        print(password)
+        print(username)
+       
+        
+        cur.execute(sql,(password,username))
+        conn.commit()
+        #r = dictfetchone(cur,sql,(password,username))
+        
+        print(sql.format(password,username))
+        
+        # r = dictfetchone(cur,sql,(password,username))
+        # print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        # return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Invalid username")
+    #cur.close()                     # Close the cursor
+    #conn.close()                    # Close the connection to the db
+    return None
+
+def change_email(email,username):
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        #########
+        # TODO  #  
+        #########
+
+        #############################################################################
+        # Fill in the SQL below in a manner similar to Wk 08 Lab to log the user in #
+        #############################################################################
+
+        
+      
+        
+        sql = """update mediaserver.ContactMethod
+set contact_type_value=%s
+where contact_type_id=1
+and username=%s
+"""
+        
+
+
+        print(email)
+        print(username)
+        
+        
+        cur.execute(sql,(email,username))
+        conn.commit()
+        #r = dictfetchone(cur,sql,(password,username))
+        
+        
+        
+        # r = dictfetchone(cur,sql,(password,username))
+        # print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        # return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Invalid username")
+    #cur.close()                     # Close the cursor
+    #conn.close()                    # Close the connection to the db
+    return None
+
+
+
+def change_phone(phone,username):
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        #########
+        # TODO  #  
+        #########
+
+        #############################################################################
+        # Fill in the SQL below in a manner similar to Wk 08 Lab to log the user in #
+        #############################################################################
+
+        
+      
+        
+        sql = """update mediaserver.ContactMethod
+set contact_type_value=%s
+where contact_type_id=2
+and username=%s
+"""
+        
+
+
+        print(phone)
+        print(username)
+        
+        
+        cur.execute(sql,(phone,username))
+        conn.commit()
+        #r = dictfetchone(cur,sql,(password,username))
+        
+        
+        
+        # r = dictfetchone(cur,sql,(password,username))
+        # print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        # return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Invalid username")
+    #cur.close()                     # Close the cursor
+    #conn.close()                    # Close the connection to the db
+    return None
+
+
+
+#####################################################
+# get contact methods
+#####################################################
+def get_contact(username):
+    """
+    get contact methods
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        #########
+        # TODO  #  
+        #########
+
+        ###############################################################################
+        # Fill in the SQL below and make sure you get all the playlists for this user #
+        ###############################################################################
+        sql = """        
+        
+select contact_type_value
+from mediaserver.ContactMethod
+where username=%s
+        """
+
+        print("username is: "+username)
+        r = dictfetchall(cur,sql,(username,))
+        print("return val is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("cannot get contact method")
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
+    return None
+
+
+
+
+######################################################3
+
+
+
 
 def check_login(username, password):
     """
@@ -157,13 +362,19 @@ def check_login(username, password):
                  FROM mediaserver.UserAccount
                  WHERE username = %s AND password = %s"""
         print(username)
+        
+        pw_password=generate_password_hash(password)
         print(password)
 
+        #if check_password(pw_password,get_password(username))==True:
+
+        
         r = dictfetchone(cur,sql,(username,password))
         print(r)
         cur.close()                     # Close the cursor
         conn.close()                    # Close the connection to the db
         return r
+    
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Error Invalid Login")
@@ -720,7 +931,7 @@ def get_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
@@ -728,6 +939,13 @@ def get_podcast(podcast_id):
         # including all metadata associated with it                                 #
         #############################################################################
         sql = """
+            SELECT podcast_id, podcast_title, podcast_uri, podcast_last_updated,md_type_name,md_value
+FROM mediaserver.Podcast LEFT JOIN mediaserver.PodcastMetaData USING (podcast_id)
+
+    LEFT JOIN mediaserver.MetaData USING (md_id)
+         	LEFT JOIN mediaserver.MetaDataType USING (md_type_id)
+WHERE podcast_id =%s AND md_type_name IN ('artwork', 'description', 'podcast genre', 'copyright holder')
+order by podcast_id
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -759,15 +977,20 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
         # Fill in the SQL below with a query to get all information about all       #
         # podcast episodes in a podcast                                             #
         #############################################################################
-        
+
         sql = """
+        SELECT media_id, podcast_episode_title, podcast_episode_URI, podcast_episode_published_date, podcast_episode_length
+FROM mediaserver.Podcast JOIN mediaserver.PodcastEpisode USING (podcast_id)
+WHERE podcast_id = %s
+ORDER BY podcast_episode_published_date desc
+
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -783,6 +1006,7 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
     return None
+
 
 
 #####################################################
@@ -808,6 +1032,14 @@ def get_podcastep(podcastep_id):
         # podcast episodes and it's associated metadata                             #
         #############################################################################
         sql = """
+          SELECT *
+                 FROM mediaserver.PodcastEpisode NATURAL JOIN mediaserver.MediaItemMetaData NATURAL JOIN
+             mediaserver.MetaData NATURAL JOIN mediaserver.MetaDataType
+             WHERE media_id =%s
+             limit 1
+            
+        
+        
         """
 
         r = dictfetchall(cur,sql,(podcastep_id,))
@@ -1220,119 +1452,6 @@ def find_matchingmovies(searchterm):
     conn.close()                    # Close the connection to the db
     return None
 
-#####################################################
-#   Find all matching songs
-#####################################################
-def find_matchingsongs(searchterm):
-    """
-    Get all the matching songs in your media server
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        SELECT s.song_id, s.song_title, length, string_agg(a.artist_name, ',') as artists
-        FROM mediaServer.Song s LEFT JOIN (mediaServer.Song_Artists sa JOIN mediaServer.Artist a ON (sa.performing_artist_id = a.artist_id))
-                                USING (song_id) 
-        WHERE lower(s.song_title) ~ lower(%s)
-        GROUP BY s.song_id, s.song_title
-        ORDER BY s.song_id            
-        """
-
-        r = dictfetchall(cur,sql,(searchterm,))
-        print("return val is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error getting All Songs:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
-    return None
-
-#####################################################
-#   Find all matching albums
-#####################################################
-def find_matchingalbums(searchterm):
-    """
-    Get all the matching albums in your media server
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        
-        SELECT album_id, album_title, COUNT(distinct song_id), array_to_string(array_agg(distinct artist_name), ', ') as artists
-        FROM mediaserver.album a LEFT JOIN mediaserver.album_songs als USING (album_id)
-                                 LEFT JOIN mediaserver.song s USING (song_id)
-                                 LEFT JOIN mediaserver.song_artists sa USING (song_id)
-                                 LEFT JOIN mediaserver.artist ar ON (sa.performing_artist_id = ar.artist_id)
-        WHERE lower(album_title) ~ lower(%s)
-        GROUP BY album_id, album_title
-        ORDER BY album_id                          
-        """
-        r = dictfetchall(cur,sql,(searchterm,))
-        print("return val is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error getting All Songs:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
-    return None
-
-
-#####################################################
-#   Find all matching artist
-#####################################################
-def find_matchingartists(searchterm):
-    """
-    Get all the matching artists in your media server
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """select 
-            a.artist_id, a.artist_name, count(amd.md_id) as count
-        from 
-            mediaserver.artist a left outer join mediaserver.artistmetadata amd on (a.artist_id=amd.artist_id)
-        where lower(artist_name) ~ lower(%s)
-        group by a.artist_id, a.artist_name
-        order by a.artist_id;
-        """
-
-        r = dictfetchall(cur,sql,(searchterm,))
-        print("return val is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error getting All Songs:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
-    return None
 
 
 #####################################################
@@ -1374,7 +1493,7 @@ def add_movie_to_db(title,release_year,description,storage_location,genre):
 #   Query (9)
 #   Add a new Song
 #####################################################
-def add_song_to_db1(storage_location,description,title,length,genre,artistid):
+def add_song_to_db(storage_location,description,title,length,genre,artistid):
     """
     Add a new song to DATABASE
     """
@@ -1389,7 +1508,7 @@ def add_song_to_db1(storage_location,description,title,length,genre,artistid):
         # Try executing the SQL and get from the database
         sql = """
         SELECT 
-            mediaserver.addSong1(
+            mediaserver.addSong(
                 %s,%s,%s,%s,%s,%s);
         """
 
@@ -1408,78 +1527,6 @@ def add_song_to_db1(storage_location,description,title,length,genre,artistid):
     cur.close()                     # Close the cursor
     conn.close()  
 
-def add_song_to_db2(storage_location,description,title,length,genre,albumid,track,artistid):
-    """
-    Add a new song to DATABASE
-    """
-    #########
-    # TODO  #  
-    #########
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        SELECT 
-            mediaserver.addSong2(
-                %s,%s,%s,%s,%s,%s,%s,%s);
-        """
-
-        cur.execute(sql,(storage_location,description,title,length,genre,albumid,track,artistid))
-        conn.commit()                   # Commit the transaction
-        r = cur.fetchone()
-        print("(database)the added song id is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error adding a song:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()      
-    #############################################################################
-    # Fill in the Function  with a query and management for how to add a new    #
-    # song to your media server. Make sure you manage all constraints           #
-    #############################################################################
-    return None
-
-def add_artist_to_db(name,description):
-    """
-    Add a new artist to DATABASE
-    """
-    #########
-    # TODO  #  
-    #########
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        SELECT 
-            mediaserver.addartist(
-                %s,%s);
-        """
-
-        cur.execute(sql,(name,description))
-        conn.commit()                   # Commit the transaction
-        r = cur.fetchone()
-        print("(database)the added artist id is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error adding a artist:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()      
     #############################################################################
     # Fill in the Function  with a query and management for how to add a new    #
     # song to your media server. Make sure you manage all constraints           #
@@ -1487,44 +1534,6 @@ def add_artist_to_db(name,description):
     return None
 
 
-def add_album_to_db(name,description):
-    """
-    Add a new artist to DATABASE
-    """
-    #########
-    # TODO  #  
-    #########
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        SELECT 
-            mediaserver.addalbum(
-                %s,%s);
-        """
-
-        cur.execute(sql,(name,description))
-        conn.commit()                   # Commit the transaction
-        r = cur.fetchone()
-        print("(database)the added album id is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error adding a album:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()      
-    #############################################################################
-    # Fill in the Function  with a query and management for how to add a new    #
-    # song to your media server. Make sure you manage all constraints           #
-    #############################################################################
-    return None
 
 
 #####################################################
@@ -1595,51 +1604,10 @@ def get_last_song():
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Unexpected error finding last song:", sys.exc_info()[0])
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
         raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
     return None
-
-def song_exist(name,artist,Length):
-    """
-    return song_id if song exist
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        print(name,artist,Length)
-
-        sql1 = """
-        CREATE OR REPLACE VIEW view1 AS
-        SELECT s.song_id, s.song_title, s.length, string_agg(a.artist_id::text,',' ORDER BY artist_id) as artists_id
-        FROM mediaserver.song s 
-            JOIN mediaserver.Song_Artists sa ON (s.song_id = sa.song_id)
-            JOIN mediaserver.Artist a ON (sa.performing_artist_id = a.artist_id)
-        GROUP BY s.song_id, s.song_title, s.length"""
-
-        sql2 = """
-        SELECT *
-        FROM view1
-        WHERE song_title = %s
-            AND artists_id = %s
-            AND length = %s"""
-
-        r1 = cur.execute(sql1)
-        r2 = dictfetchall(cur,sql2,(name,artist,Length))
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r2
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Error when testing song existance:", sys.exc_info())
-        cur.close()                     # Close the cursor
-        conn.close()  
-        return False
-                      # Close the connection to the db
 
 def artist_exist(id):
     """
@@ -1655,7 +1623,7 @@ def artist_exist(id):
         sql = """
         select * FROM mediaserver.Artist WHERE artist_id = %s"""
 
-        r = dictfetchall(cur,sql,(id,))
+        r = dictfetchone(cur,sql,(id,))
         print("artist exist is:")
         print(r)
         cur.close()                     # Close the cursor
@@ -1664,231 +1632,10 @@ def artist_exist(id):
     except:
         # If there were any errors, return a NULL row printing an error to the debug
         print("Error when testing artist existance:", sys.exc_info()[0])
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return False
-
-def artist_nameexist(id):
-    """
-    return ture if artist exist
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        select * FROM mediaserver.Artist WHERE artist_name = %s"""
-
-        r = dictfetchall(cur,sql,(id,))
-        print("artist exist is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Error when testing artist existance:", sys.exc_info()[0])
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return False
-
-def album_nameexist(id):
-    """
-    return ture if album exist
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        select * FROM mediaserver.Album WHERE album_title = %s"""
-
-        r = dictfetchall(cur,sql,(id,))
-        print("album exist is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Error when testing artist existance:", sys.exc_info()[0])
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return False
-
-def get_last_artist():
-    """
-    Get all the latest entered artist in your media server
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        select max(artist_id) as artist_id from mediaserver.Artist"""
-
-        r = dictfetchone(cur,sql)
-        print("Max artist id is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error finding last song:", sys.exc_info()[0])
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        raise
-    return None
-
-def get_last_album():
-    """
-    Get all the latest entered artist in your media server
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        select max(album_id) as album_id from mediaserver.Album"""
-
-        r = dictfetchone(cur,sql)
-        print("Max album id is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error finding last song:", sys.exc_info()[0])
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        raise
-    return None
-
-def add_song_artist(song_id,artist_id):
-    """
-    add artist to existing song
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """
-        INSERT INTO mediaserver.Song_Artists VALUES (%s,%s)"""
-
-        cur.execute(sql,(song_id,artist_id))
-        conn.commit()                   # Commit the transaction
-        r = cur.fetchone()
-        print("(database)the added song-artist is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Error add artist to existing song:", sys.exc_info())
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return False
-
-
-def get_allgenres():
-    """
-    Get all genres
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        #########
-        # TODO  #  
-        #########
-
-        #############################################################################
-        # Fill in the SQL below with a query to get all information about all       #
-        # genres in an album (based on all the genres of the songs in that album)   #
-        #############################################################################
-        sql = """
-        SELECT md_id,md_value
-        FROM mediaserver.MetaData md 
-            JOIN mediaserver.MetaDataType mdt ON (md.md_type_id = mdt.md_type_id)
-        WHERE mdt.md_type_name = 'song genre'
-        """
-
-        r = dictfetchall(cur,sql)
-        print("return val is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("task9 testing: ", sys.exc_info()[0])
         raise
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
-    return None
-
-
-def get_album(id):
-    """
-    Get album
-    """
-
-    conn = database_connect()
-    if(conn is None):
-        return None
-    cur = conn.cursor()
-    try:
-        # Try executing the SQL and get from the database
-        sql = """select 
-                a.album_id, a.album_title, anew.count as count, anew.artists
-            from 
-                mediaserver.album a, 
-                (select 
-                    a1.album_id, count(distinct as1.song_id) as count, array_to_string(array_agg(distinct ar1.artist_name),',') as artists
-                from 
-                    mediaserver.album a1 
-			left outer join mediaserver.album_songs as1 on (a1.album_id=as1.album_id) 
-			left outer join mediaserver.song s1 on (as1.song_id=s1.song_id)
-			left outer join mediaserver.Song_Artists sa1 on (s1.song_id=sa1.song_id)
-			left outer join mediaserver.artist ar1 on (sa1.performing_artist_id=ar1.artist_id)
-                group by a1.album_id) anew 
-            where a.album_id = anew.album_id
-                AND a.album_id = %s;"""
-
-        r = dictfetchall(cur,sql,(id,))
-        print("return val is:")
-        print(r)
-        cur.close()                     # Close the cursor
-        conn.close()                    # Close the connection to the db
-        return r
-    except:
-        # If there were any errors, return a NULL row printing an error to the debug
-        print("Unexpected error getting All Albums:", sys.exc_info()[0])
-        raise
-    cur.close()                     # Close the cursor
-    conn.close()                    # Close the connection to the db
-    return None
-
+    return False
 
 # =================================================================
 # =================================================================

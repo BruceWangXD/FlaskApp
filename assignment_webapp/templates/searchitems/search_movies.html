@@ -7,7 +7,7 @@
             <button class="flat" type="submit">Search</button>
         </form>
             {% if movies | length > 0 %}
-                <!-- All movies -->
+                <!-- All TV Shows -->
                 <table class="styled">
                     <thead>
                         <tr>
@@ -19,7 +19,7 @@
                     </thead>
                     <tbody>
                         {% for instance in movies %}
-                            <!-- Each row is a link to each individual movie page -->
+                            <!-- Each row is a link to each individual tvshow page -->
                             <tr class="clickable-tr" data-href="{{ url_for('single_movie', movie_id=instance.movie_id)}}">
                                 <td style="text-align: center">{{ instance.movie_id }}</td>
                                 <td>{{instance.movie_title}}</td>
