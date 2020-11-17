@@ -692,8 +692,7 @@ def single_podcastep(media_id):
                            page=page,
                            user=user_details,
                            podcaststep=podcaststep,
-                           contact=contact
-                           )
+                           contact=contact)
 
 
 
@@ -1228,7 +1227,7 @@ def add_song():
         newdict["Album"] = request.form['Album']
 
         try:
-            if int(newdict['length'])<0 or int(newdict['length'])>1000000:
+            if int(newdict['length'])<=0 or int(newdict['length'])>=1000000:
                 flash("Invalid length")
                 return render_template('createitems/createsong.html',
                             Artists = Artists,

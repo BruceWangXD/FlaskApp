@@ -5,15 +5,15 @@
         Display All Relevant Podcast Infromation including meta data
         Display All Relevant Podcast Episodes for this Podcast
         -->
-        <h2 class="title"> {{podcast[0].podcast_id}}</h2>
-        <h2 class="title"> {{podcast[0].podcast_title}}</h2>
-        <h2 class="title"> {{podcast[0].podcast_uri}}</h2>
-        <h2 class="title"> {{podcast[0].podcast_last_updated}}</h2>
+        <h2 class="title"> Podcast ID: {{podcast[0].podcast_id}}</h2>
+        <h2 class="title"> Podcast Title: {{podcast[0].podcast_title}}</h2>
+        <h2 class="title"> Podcast URI: {{podcast[0].podcast_uri}}</h2>
+        <h2 class="title"> Last Updated: {{podcast[0].podcast_last_updated}}</h2>
             <hr/>
             <h3> Artworks </h3>
             {% for instance in podcast %}
                 {% if instance.md_type_name == 'artwork' %}
-                    <img src="{{instance.md_value}}" alt="image">
+                    <img src="{{instance.md_value}}" alt="image" height="500" width="500">
                     <br/>© Spotify Public Domain 2019.
                 {% endif %}
             {% endfor %}
@@ -29,12 +29,22 @@
             <br/>
             <h3> Genres </h3>
             {% for instance in podcast %}
+                {% if instance.md_type_name == 'podcast genre' %}
+                    <div>
+                        {{instance.md_value}}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <br/>
+            <h3> Copyright Holder </h3>
+            {% for instance in podcast %}
                 {% if instance.md_type_name == 'copyright holder' %}
                     <div>
                         {{instance.md_value}}
                     </div>
                 {% endif %}
             {% endfor %}
+            <br/>
             <div>
                 <!-- Podcast Episodes -->
                 <h3>Episodes for this Podcast</h3>

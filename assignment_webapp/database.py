@@ -1022,14 +1022,11 @@ def get_podcastep(podcastep_id):
         # podcast episodes and it's associated metadata                             #
         #############################################################################
         sql = """
-          SELECT *
-                 FROM mediaserver.PodcastEpisode NATURAL JOIN mediaserver.MediaItemMetaData NATURAL JOIN
-             mediaserver.MetaData NATURAL JOIN mediaserver.MetaDataType
-             WHERE media_id =%s
-             limit 1
-            
-        
-        
+        SELECT *
+        FROM mediaserver.PodcastEpisode NATURAL JOIN mediaserver.MediaItemMetaData NATURAL JOIN
+        mediaserver.MetaData NATURAL JOIN mediaserver.MetaDataType
+        natural join  mediaserver.Podcast
+        WHERE media_id = %s
         """
 
         r = dictfetchall(cur,sql,(podcastep_id,))
@@ -1077,13 +1074,13 @@ def get_album(album_id):
         # including all relevant metadata                                           #
         #############################################################################
         sql = """
-        SELECT a.album_title, mdt.md_type_name, string_agg(md.md_value, ', ' ORDER BY md.md_id) AS md_value
+        SELECT a.album_title, mdt.md_type_name as md_type_name, md_value
         FROM mediaserver.Album a
             LEFT JOIN mediaserver.AlbumMetaData amd ON (a.album_id = amd.album_id)
             LEFT JOIN mediaserver.MetaData md ON (amd.md_id = md.md_id)
             LEFT JOIN mediaserver.MetaDataType mdt ON (md.md_type_id = mdt.md_type_id)
         WHERE a.album_id = %s
-        GROUP BY a.album_title, mdt.md_type_name
+        GROUP BY a.album_title, mdt.md_type_name, md_value
         """
 
         r = dictfetchall(cur,sql,(album_id,))
