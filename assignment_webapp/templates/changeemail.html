@@ -1,0 +1,23 @@
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+        <!-- TODO Query 6  
+        Display All Relevant Podcast Infromation including meta data
+        Display All Relevant Podcast Episodes for this Podcast
+        -->
+        <h1 >Change your Email</h1>
+
+        
+        <form class="email" method="POST" action="{{url_for('changeemail')}}">
+            
+            <br> 
+            <input type="text" name="email" placeholder="Email" required>
+            <br> 
+            <!-- <input type="password" name="passwordsecond" placeholder="re-enter Password" required>
+            <br>  -->
+            <button class="flat" type="submit" >Submit</button>
+        </form>
+        
+    </div>
+</div>
+{% include 'bottom.html'%}

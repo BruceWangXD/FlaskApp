@@ -1,11 +1,10 @@
 {% include 'top.html' %}
 <div class="content">
     <div class="container details">
+
         <h2 class="title"> All Artists</h2>
-        <hr/>
-        {% if session.logged_in %}
-        <a class="pure-button" href="{{ url_for('add_artist')}}">Add Artist</a>
-        {% endif %}
+
+
         <div>
         <!-- All Artists -->
             <table class="styled"  id="funtable">
