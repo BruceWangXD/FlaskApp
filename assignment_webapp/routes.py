@@ -14,6 +14,12 @@ from modules import *
 from flask import *
 import database
 
+
+
+import re
+from werkzeug.security import generate_password_hash, check_password_hash
+
+
 user_details = {}                   # User details kept for us
 session = {}                        # Session information (logged in state)
 page = {}                           # Determines the page information
@@ -62,13 +68,21 @@ def index():
     if user_in_progress_items == None:
         user_in_progress_items = []
 
+    global contact
+    contact = None
+    contact = database.get_contact(user_details.get('username'))
+
+    # Data integrity checks
+    if contact == None:
+        contact = []
     return render_template('index.html',
                            session=session,
                            page=page,
                            user=user_details,
                            playlists=user_playlists,
                            subpodcasts=user_subscribed_podcasts,
-                           usercurrent=user_in_progress_items)
+                           usercurrent=user_in_progress_items,
+                           contact=contact)
 
 #####################################################
 #####################################################
@@ -111,6 +125,16 @@ def login():
         global user_details
         user_details = login_return_data[0]
 
+        contact = None
+        contact = database.get_contact(user_details.get('username'))
+
+    
+        if contact == None:
+            contact = []
+
+
+          
+        print(contact)
         return redirect(url_for('index'))
 
     elif(request.method == 'GET'):
@@ -138,6 +162,178 @@ def logout():
 #####################################################
 #####################################################
 
+
+
+@app.route('/changepassword', methods=['POST', 'GET'])
+def changepassword():
+    """
+    changepassword
+    """
+    # Check if they are submitting details, or they are just logging in
+    if(request.method == 'POST'):
+        # submitting details
+        # The form gives back EmployeeID and Password
+        
+        if request.form['passwordfirst'] is None or request.form['passwordsecond'] is None:
+            flash("the passwords you entered can not be None")
+            return redirect(url_for('changepassword'))
+
+
+
+        if request.form['passwordfirst']!=request.form['passwordsecond']:
+            flash("the passwords you entered are not the same")
+            return redirect(url_for('changepassword'))
+        
+        if request.form['passwordfirst']==user_details.get('password'):
+            flash("the password must be different to your current one")
+            return redirect(url_for('changepassword'))
+
+
+        lowerRegex = re.compile('[a-z]')
+        upperRegex = re.compile('[A-Z]')
+        digitRegex = re.compile('[0-9]')
+        if len(request.form['passwordfirst'])<8:
+            flash("the length of your password must be at least 8")
+            return redirect(url_for('changepassword'))
+        
+        
+        
+        if lowerRegex.search(request.form['passwordfirst']) == None or upperRegex.search(request.form['passwordfirst']) == None or digitRegex.search(request.form['passwordfirst']) == None:
+            flash("the password must be made up by at least one digit, one lower case letter and one upper case letter")
+            return redirect(url_for('changepassword'))
+
+
+
+        
+        return_value=database.change_password(
+            
+            request.form['passwordfirst'],
+            user_details.get('username')
+        )
+
+        
+        
+        
+
+    
+
+        
+
+        # If there was no error, log them in
+        
+        flash('You have changed password successfully')
+        return redirect(url_for('index'))
+
+        
+
+    elif(request.method == 'GET'):
+        return(render_template('changepassword.html', session=session, page=page,contact=contact))
+
+
+
+
+################################################
+#email
+############################################
+
+@app.route('/changeemail', methods=['POST', 'GET'])
+def changeemail():
+    """
+    changeemail
+    """
+    # Check if they are submitting details, or they are just logging in
+    if(request.method == 'POST'):
+        # submitting details
+        # The form gives back EmployeeID and Password
+        
+        str='^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+){0,4}$'
+
+        if not  re.match(str, request.form['email']):
+            flash("Please make sure your email address is in correct format")
+            return redirect(url_for('changeemail'))
+
+
+        
+        return_value=database.change_email(
+            
+            request.form['email'],
+            user_details.get('username')
+        )
+
+
+       
+
+        
+        
+    
+
+        
+
+        # If there was no error, log them in
+        
+        flash('You have changed email successfully')
+        return redirect(url_for('index'))
+
+        
+
+    elif(request.method == 'GET'):
+        return(render_template('changeemail.html', session=session, page=page,contact=contact))
+
+
+
+#####################################################
+#   Phone
+#####################################################
+
+
+
+@app.route('/changephonenumber', methods=['POST', 'GET'])
+def changephonenumber():
+    """
+    changephonenumber
+    """
+    # Check if they are submitting details, or they are just logging in
+    if(request.method == 'POST'):
+        # submitting details
+        # The form gives back EmployeeID and Password
+        
+        try:
+            temp=int(request.form['phone'])
+
+        except:
+            flash("Please make sure your phone number is in a correct format")
+            return redirect(url_for('changephonenumber'))
+
+
+        
+        return_value=database.change_phone(
+            
+            request.form['phone'],
+            user_details.get('username')
+        )
+
+
+        
+        
+    
+
+        
+
+        # If there was no error, log them in
+        
+        flash('You have changed phone successfully')
+        return redirect(url_for('index'))
+
+        
+
+    elif(request.method == 'GET'):
+        return(render_template('changephonenumber.html', session=session, page=page,contact=contact))
+
+
+
+
+
+#####################################################
 
 #####################################################
 #   List Artists
@@ -167,7 +363,8 @@ def list_artists():
                            session=session,
                            page=page,
                            user=user_details,
-                           allartists=allartists)
+                           allartists=allartists,
+                           contact=contact)
 
 
 #####################################################
@@ -199,7 +396,8 @@ def list_songs():
                            session=session,
                            page=page,
                            user=user_details,
-                           allsongs=allsongs)
+                           allsongs=allsongs,
+                           contact=contact)
 
 #####################################################
 #   List Podcasts
@@ -229,7 +427,8 @@ def list_podcasts():
                            session=session,
                            page=page,
                            user=user_details,
-                           allpodcasts=allpodcasts)
+                           allpodcasts=allpodcasts,
+                           contact=contact)
 
 
 #####################################################
@@ -261,7 +460,8 @@ def list_movies():
                            session=session,
                            page=page,
                            user=user_details,
-                           allmovies=allmovies)
+                           allmovies=allmovies,
+                           contact=contact)
 
 
 #####################################################
@@ -293,7 +493,8 @@ def list_albums():
                            session=session,
                            page=page,
                            user=user_details,
-                           allalbums=allalbums)
+                           allalbums=allalbums,
+                           contact=contact)
 
 
 #####################################################
@@ -325,7 +526,8 @@ def list_tvshows():
                            session=session,
                            page=page,
                            user=user_details,
-                           alltvshows=alltvshows)
+                           alltvshows=alltvshows,
+                           contact=contact)
 
 
 
@@ -363,7 +565,8 @@ def single_artist(artist_id):
                            session=session,
                            page=page,
                            user=user_details,
-                           artist=artist)
+                           artist=artist,
+                           contact=contact)
 
 
 #####################################################
@@ -400,7 +603,8 @@ def single_song(song_id):
                            page=page,
                            user=user_details,
                            song=song,
-                           songmetadata=songmetadata)
+                           songmetadata=songmetadata,
+                           contact=contact)
 
 #####################################################
 #   Query 6
@@ -413,24 +617,42 @@ def single_podcast(podcast_id):
     Can do this without a login
     """
     #########
-    # TODO  #  
+    # TODO  #
     #########
 
     #############################################################################
     # Fill in the Function below with to do all data handling for a podcast     #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Single podcast' + podcast_id # Add the title
 
     # Set up some variables to manage the returns from the database fucntions
-    
+
+    podcast = None
+    podcast = database.get_podcast(podcast_id)
+
+    all_podcasteps = None
+    all_podcasteps = database.get_all_podcasteps_for_podcast(podcast_id)
+
     # Once retrieved, do some data integrity checks on the data
+
+    if podcast == None:
+        podcast = []
+
+    if all_podcasteps == None:
+        all_podcasteps = []
 
     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
     return render_template('singleitems/podcast.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           podcast=podcast,
+                           all_podcasteps=all_podcasteps,
+                           contact=contact
+                           )
+
+
 
 #####################################################
 #   Query 7
@@ -443,24 +665,36 @@ def single_podcastep(media_id):
     Can do this without a login
     """
     #########
-    # TODO  #  
+    # TODO  #
     #########
 
     #############################################################################
     # Fill in the Function below with to do all data handling for a podcast ep  #
     #############################################################################
 
-    page['title'] = '' # Add the title
+    page['title'] = 'Postcast Episode'  + media_id # Add the title
 
     # Set up some variables to manage the returns from the database fucntions
+
+    podcaststep = None
+    podcaststep = database.get_podcastep(media_id)
+
     
+
     # Once retrieved, do some data integrity checks on the data
+    if podcaststep == None:
+        podcaststep = []
+
 
     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
     return render_template('singleitems/podcastep.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           podcaststep=podcaststep,
+                           contact=contact
+                           )
+
 
 
 #####################################################
@@ -492,7 +726,8 @@ def single_movie(movie_id):
                            session=session,
                            page=page,
                            user=user_details,
-                           movie=movie)
+                           movie=movie,
+                           contact=contact)
 
 
 #####################################################
@@ -536,7 +771,8 @@ def single_album(album_id):
                            user=user_details,
                            album=album,
                            album_songs=album_songs,
-                           album_genres=album_genres)
+                           album_genres=album_genres,
+                           contact=contact)
 
 
 #####################################################
@@ -573,7 +809,8 @@ def single_tvshow(tvshow_id):
                            page=page,
                            user=user_details,
                            tvshow=tvshow,
-                           tvshoweps=tvshoweps)
+                           tvshoweps=tvshoweps,
+                           contact=contact)
 
 #####################################################
 #   Individual TVShow Episode
@@ -604,7 +841,8 @@ def single_tvshowep(tvshowep_id):
                            session=session,
                            page=page,
                            user=user_details,
-                           tvshowep=tvshowep)
+                           tvshowep=tvshowep,
+                           contact=contact)
 
 
 #####################################################
@@ -648,7 +886,8 @@ def search_tvshows():
                            session=session,
                            page=page,
                            user=user_details,
-                           tvshows=tvshows)
+                           tvshows=tvshows,
+                           contact=contact)
 
 #####################################################
 #   Query 10
@@ -703,7 +942,8 @@ def search_movies():
                     session=session,
                     page=page,
                     user=user_details,
-                    movies = movies)
+                    movies = movies,
+                    contact=contact)
     # else:
     #     # NOTE :: YOU WILL NEED TO MODIFY THIS TO PASS THE APPROPRIATE VARIABLES
     #     return render_template('searchitems/search_movies.html',
@@ -748,7 +988,8 @@ def search_songs():
                            session=session,
                            page=page,
                            user=user_details,
-                           songs=songs)
+                           songs=songs,
+                           contact=contact)
 
 
 #####################################################
@@ -786,7 +1027,8 @@ def search_albums():
                            session=session,
                            page=page,
                            user=user_details,
-                           albums=albums)
+                           albums=albums,
+                           contact=contact)
 
 
 #####################################################
@@ -824,7 +1066,8 @@ def search_artists():
                            session=session,
                            page=page,
                            user=user_details,
-                           artists=artists)
+                           artists=artists,
+                           contact=contact)
 
 #####################################################
 #   Add Movie
@@ -903,7 +1146,8 @@ def add_movie():
         return render_template('createitems/createmovie.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           contact=contact)
 
 
 #####################################################
@@ -992,7 +1236,8 @@ def add_song():
                             Genres = Genres,
                             session=session,
                             page=page,
-                            user=user_details)
+                            user=user_details,
+                            contact=contact)
         except:
             flash("Invalid length")
             return render_template('createitems/createsong.html',
@@ -1001,7 +1246,8 @@ def add_song():
                         Genres = Genres,
                         session=session,
                         page=page,
-                        user=user_details)
+                        user=user_details,
+                        contact=contact)
 
         if database.song_exist(newdict['song_title'],newdict['artist'],newdict['length']):
             print("The song already exist in database, Adding failed!")
@@ -1034,7 +1280,8 @@ def add_song():
                            Genres = Genres,
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           contact=contact)
 
 #####################################################
 #   Add artist
@@ -1098,7 +1345,8 @@ def add_artist():
         return render_template('createitems/createartist.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           contact=contact)
 
 
 #####################################################
@@ -1162,11 +1410,13 @@ def add_album():
         return render_template('createitems/createalbum.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           contact=contact)
 
 @app.route('/add/media', methods=['POST','GET'])
 def add_media():
     return render_template('createitems/createmedia.html',
                            session=session,
                            page=page,
-                           user=user_details)
+                           user=user_details,
+                           contact=contact)

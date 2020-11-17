@@ -8,7 +8,7 @@ import configparser
 import json
 import sys
 from modules import pg8000
-
+from werkzeug.security import generate_password_hash, check_password_hash
 ################################################################################
 #   Welcome to the database file, where all the query magic happens.
 #   My biggest tip is look at the *week 8 lab*.
@@ -126,7 +126,207 @@ def dictfetchone(cursor,sqltext,params=None):
     result.append({a:b for a,b in zip(cols, returnres)})
     return result
 
+def set_password(password):
+    pw_hash = generate_password_hash(password)
+    return pw_hash
 
+def check_password(pw_hash,password):
+    return check_password_hash(pw_hash, password)
+
+
+def change_password(password,username):
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        #########
+        # TODO  #  
+        #########
+
+        #############################################################################
+        # Fill in the SQL below in a manner similar to Wk 08 Lab to log the user in #
+        #############################################################################
+
+        
+      
+        
+        sql = """update mediaserver.UserAccount
+set password=%s
+where username=%s
+"""
+        
+
+
+        print(password)
+        print(username)
+       
+        
+        cur.execute(sql,(password,username))
+        conn.commit()
+        #r = dictfetchone(cur,sql,(password,username))
+        
+        print(sql.format(password,username))
+        
+        # r = dictfetchone(cur,sql,(password,username))
+        # print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        # return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Invalid username")
+    #cur.close()                     # Close the cursor
+    #conn.close()                    # Close the connection to the db
+    return None
+
+def change_email(email,username):
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        #########
+        # TODO  #  
+        #########
+
+        #############################################################################
+        # Fill in the SQL below in a manner similar to Wk 08 Lab to log the user in #
+        #############################################################################
+
+        
+      
+        
+        sql = """update mediaserver.ContactMethod
+set contact_type_value=%s
+where contact_type_id=1
+and username=%s
+"""
+        
+
+
+        print(email)
+        print(username)
+        
+        
+        cur.execute(sql,(email,username))
+        conn.commit()
+        #r = dictfetchone(cur,sql,(password,username))
+        
+        
+        
+        # r = dictfetchone(cur,sql,(password,username))
+        # print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        # return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Invalid username")
+    #cur.close()                     # Close the cursor
+    #conn.close()                    # Close the connection to the db
+    return None
+
+
+
+def change_phone(phone,username):
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        # Try executing the SQL and get from the database
+        #########
+        # TODO  #  
+        #########
+
+        #############################################################################
+        # Fill in the SQL below in a manner similar to Wk 08 Lab to log the user in #
+        #############################################################################
+
+        
+      
+        
+        sql = """update mediaserver.ContactMethod
+set contact_type_value=%s
+where contact_type_id=2
+and username=%s
+"""
+        
+
+
+        print(phone)
+        print(username)
+        
+        
+        cur.execute(sql,(phone,username))
+        conn.commit()
+        #r = dictfetchone(cur,sql,(password,username))
+        
+        
+        
+        # r = dictfetchone(cur,sql,(password,username))
+        # print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        # return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("Invalid username")
+    #cur.close()                     # Close the cursor
+    #conn.close()                    # Close the connection to the db
+    return None
+
+
+
+#####################################################
+# get contact methods
+#####################################################
+def get_contact(username):
+    """
+    get contact methods
+    """
+
+    conn = database_connect()
+    if(conn is None):
+        return None
+    cur = conn.cursor()
+    try:
+        #########
+        # TODO  #  
+        #########
+
+        ###############################################################################
+        # Fill in the SQL below and make sure you get all the playlists for this user #
+        ###############################################################################
+        sql = """        
+        
+select contact_type_value
+from mediaserver.ContactMethod
+where username=%s
+        """
+
+        print("username is: "+username)
+        r = dictfetchall(cur,sql,(username,))
+        print("return val is:")
+        print(r)
+        cur.close()                     # Close the cursor
+        conn.close()                    # Close the connection to the db
+        return r
+    except:
+        # If there were any errors, return a NULL row printing an error to the debug
+        print("cannot get contact method")
+        raise
+    cur.close()                     # Close the cursor
+    conn.close()                    # Close the connection to the db
+    return None
+
+
+
+
+######################################################3
 
 #####################################################
 #   Query (1)
@@ -705,6 +905,7 @@ def get_song_metadata(song_id):
     conn.close()                    # Close the connection to the db
     return None
 
+
 #####################################################
 #   Query (7 a,b,c,d,e)
 #   Get one podcast and return all metadata associated with it
@@ -720,7 +921,7 @@ def get_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
@@ -728,6 +929,13 @@ def get_podcast(podcast_id):
         # including all metadata associated with it                                 #
         #############################################################################
         sql = """
+            SELECT podcast_id, podcast_title, podcast_uri, podcast_last_updated,md_type_name,md_value
+FROM mediaserver.Podcast LEFT JOIN mediaserver.PodcastMetaData USING (podcast_id)
+
+    LEFT JOIN mediaserver.MetaData USING (md_id)
+         	LEFT JOIN mediaserver.MetaDataType USING (md_type_id)
+WHERE podcast_id =%s AND md_type_name IN ('artwork', 'description', 'podcast genre', 'copyright holder')
+order by podcast_id
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -759,15 +967,20 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur = conn.cursor()
     try:
         #########
-        # TODO  #  
+        # TODO  #
         #########
 
         #############################################################################
         # Fill in the SQL below with a query to get all information about all       #
         # podcast episodes in a podcast                                             #
         #############################################################################
-        
+
         sql = """
+        SELECT media_id, podcast_episode_title, podcast_episode_URI, podcast_episode_published_date, podcast_episode_length
+FROM mediaserver.Podcast JOIN mediaserver.PodcastEpisode USING (podcast_id)
+WHERE podcast_id = %s
+ORDER BY podcast_episode_published_date desc
+
         """
 
         r = dictfetchall(cur,sql,(podcast_id,))
@@ -783,6 +996,7 @@ def get_all_podcasteps_for_podcast(podcast_id):
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
     return None
+
 
 
 #####################################################
@@ -808,6 +1022,14 @@ def get_podcastep(podcastep_id):
         # podcast episodes and it's associated metadata                             #
         #############################################################################
         sql = """
+          SELECT *
+                 FROM mediaserver.PodcastEpisode NATURAL JOIN mediaserver.MediaItemMetaData NATURAL JOIN
+             mediaserver.MetaData NATURAL JOIN mediaserver.MetaDataType
+             WHERE media_id =%s
+             limit 1
+            
+        
+        
         """
 
         r = dictfetchall(cur,sql,(podcastep_id,))
@@ -823,6 +1045,13 @@ def get_podcastep(podcastep_id):
     cur.close()                     # Close the cursor
     conn.close()                    # Close the connection to the db
     return None
+
+
+#####################################################
+#   Query (7 a,b,c,d,e)
+#   Get one podcast and return all metadata associated with it
+#####################################################
+
 
 
 #####################################################
