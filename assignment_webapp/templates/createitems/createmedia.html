@@ -1,0 +1,30 @@
+{% include 'top.html' %}
+<div class="content">
+    <div class="container details">
+
+        <h2 class="title"> Add Media </h2>
+
+        <a href="{{ url_for('add_song') }}">
+            <button>Add Song</button>
+        </a>
+        
+        <a href="{{ url_for('add_artist') }}">
+            <button>Add Artist</button>
+        </a>
+        
+        <a href="{{ url_for('add_album') }}">
+            <button>Add Album</button>
+        </a>
+
+        <a href="{{ url_for('add_movie') }}">
+            <button>Add Movie</button>
+        </a>
+        
+        <br/>
+        <br/>
+        <br/>
+
+
+    </div>
+</div>
+{% include 'bottom.html'%}
