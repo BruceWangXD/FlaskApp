@@ -1271,6 +1271,7 @@ def get_all_tvshoweps_for_tvshow(tvshow_id):
         SELECT te.media_id, te.tvshow_episode_title, te.season, te.episode, te.air_date
         FROM mediaserver.TVShow ts JOIN mediaserver.TVEpisode te ON (ts.tvshow_id = te.tvshow_id)
         WHERE ts.tvshow_id = %s
+        ORDER BY te.season, te.episode
 
         """
 
