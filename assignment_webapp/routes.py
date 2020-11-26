@@ -1257,8 +1257,8 @@ def add_song():
         if newdict["Album"] == 'None':
             songs = database.add_song_to_db1(newdict['storage_location'],newdict['description'],newdict['song_title'],newdict['length'],newdict['song_genre'],newdict['artist'])
         else:
-            print(database.get_album(newdict["Album"])[0]['count'])
-            albumtrack = int(database.get_album(newdict["Album"])[0]['count'])+1
+            print(database.get_album1(newdict["Album"])[0]['count'])
+            albumtrack = int(database.get_album1(newdict["Album"])[0]['count'])+1
             songs = database.add_song_to_db2(newdict['storage_location'],newdict['description'],newdict['song_title'],newdict['length'],newdict['song_genre'],newdict["Album"],albumtrack,newdict['artist'])
         songsid = songs[0]
         database.add_song_artist(songsid,newdict['artist'])
